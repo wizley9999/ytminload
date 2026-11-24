@@ -8,11 +8,11 @@ on:
         required: true
 
 jobs:
-  dylib:
+  build:
     uses: ./.github/workflows/build.yml
 
   ipa:
-    needs: dylib
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
