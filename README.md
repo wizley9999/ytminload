@@ -27,10 +27,13 @@ Out of scope: downloads, 1080p Premium and high-bitrate audio (the server decide
 ## Build
 
 Requirements: a decrypted YouTube IPA, Theos with an iOS toolchain and SDK, and Python 3.
+
 Set up Theos with its [installation guide](https://theos.dev/docs/installation).
+
 Create `ipa/` (it is not in the repository) and put the IPA there as `com.google.ios.youtube-<version>.ipa`.
-Tags named `yt-<version>` mark the YouTube versions this code was verified on. Build from the one that matches
-your IPA with `git checkout yt-<version>`.
+
+Tags named `yt-<version>` mark the YouTube versions this code was verified on.
+Build from the one that matches your IPA with `git checkout yt-<version>`.
 
 ```sh
 make ipa
@@ -38,6 +41,7 @@ make ipa
 
 This builds `.theos/obj/ytminload.dylib`, runs `ytm.py check` (stops on any FAIL), then runs `ytm.py pack`,
 which writes `ipa/ytminload-<version>.ipa`. If `ipa/` holds several originals, the highest version is used.
+
 Pass `BASE=<file or folder>` to pick another one. `make` alone builds only the dylib.
 
 With Theos in WSL, run this from the repository folder in PowerShell. WSL starts in the same folder, on any drive:
