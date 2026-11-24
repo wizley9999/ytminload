@@ -17,18 +17,20 @@ Out of scope: downloads, 1080p Premium and high-bitrate audio (the server decide
 
 ## Layout
 
-| Path                          | Purpose                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| `Tweak.mm`                    | The whole tweak: one install helper, a hook table grouped by feature, and the list filters.      |
-| `Makefile`                    | Theos build. `make` builds the dylib. `make ipa` also checks the original and packs the IPA.     |
-| `ytm.py`                      | `check`, `dump` and `pack` for the original IPA. Python 3.8+, no dependencies.                   |
-| `.github/workflows/build.yml` | Builds the dylib on a GitHub macOS runner.                                                       |
-| `.github/workflows/ipa.yml`   | Builds the dylib, then the IPA on a self-hosted runner.                                          |
-| `ipa/`                        | Original `com.google.ios.youtube-<version>.ipa` files and built `ytminload-<version>.ipa` files. |
+| Path       | Purpose                                                                                          |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| `Tweak.mm` | The whole tweak: one install helper, a hook table grouped by feature, and the list filters.      |
+| `Makefile` | Theos build. `make` builds the dylib. `make ipa` also checks the original and packs the IPA.     |
+| `ytm.py`   | `check`, `dump` and `pack` for the original IPA. Python 3.8+, no dependencies.                   |
+| `ipa/`     | Original `com.google.ios.youtube-<version>.ipa` files and built `ytminload-<version>.ipa` files. |
 
-## Build locally
+## Build
 
-Requirements: a decrypted YouTube IPA in `ipa/`, Theos with an iOS toolchain and SDK, and Python 3.
+Requirements: a decrypted YouTube IPA, Theos with an iOS toolchain and SDK, and Python 3.
+Set up Theos with its [installation guide](https://theos.dev/docs/installation).
+Create `ipa/` (it is not in the repository) and put the IPA there as `com.google.ios.youtube-<version>.ipa`.
+Tags named `yt-<version>` mark the YouTube versions this code was verified on. Build from the one that matches
+your IPA with `git checkout yt-<version>`.
 
 ```sh
 make ipa
@@ -43,14 +45,6 @@ With Theos in WSL, run this from the repository folder in PowerShell. WSL starts
 ```powershell
 wsl -d Ubuntu -- env THEOS=/home/<user>/theos make ipa
 ```
-
-## CI
-
-- `build.yml` runs on demand only and when `ipa.yml` calls it. It builds the dylib with the Xcode SDK,
-  checks its install name and that no hooking framework is linked, and uploads the `ytminload-dylib` artifact.
-- `ipa.yml` runs on demand only. After `build.yml`, a self-hosted runner reads the highest-version original
-  from `ipa/` in its own checkout, runs `check` and `pack`, and writes the IPA to the same folder.
-  IPAs never leave that machine.
 
 ## ytm.py
 
