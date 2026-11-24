@@ -11,18 +11,20 @@ sideload login by overriding getters at runtime. No new UI, no settings screen, 
 | B   | Background playback | Playability getters return YES.                                                                                                                           |
 | C   | Picture in Picture  | PiP getters return YES.                                                                                                                                   |
 | I   | Upsell and prompts  | No mealbar promo, app update dialog or "still watching" prompt.                                                                                           |
-| L   | Sideload login      | Gives Google SSO a keychain access group the resigned app can use, so login survives an app restart.                                                      |
+| L   | Sideload login      | Gives <Provider> SSO a keychain access group the resigned app can use, so login survives an app restart.                                                  |
 
 Out of scope: downloads, 1080p Premium and high-bitrate audio (the server decides those), cosmetic extras.
 
 ## Layout
 
-| Path       | Purpose                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------ |
-| `Tweak.mm` | The whole tweak: one install helper, a hook table grouped by feature, and the list filters.      |
-| `Makefile` | Theos build. `make` builds the dylib. `make ipa` also checks the original and packs the IPA.     |
-| `ytm.py`   | `check`, `dump` and `pack` for the original IPA. Python 3.8+, no dependencies.                   |
-| `ipa/`     | Original `com.google.ios.youtube-<version>.ipa` files and built `ytminload-<version>.ipa` files. |
+| Path                          | Purpose                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Tweak.mm`                    | The whole tweak: one install helper, a hook table grouped by feature, and the list filters.          |
+| `Makefile`                    | Theos build. `make` builds the dylib. `make ipa` also checks the original and packs the IPA.         |
+| `ytm.py`                      | `check`, `dump` and `pack` for the original IPA. Python 3.8+, no dependencies.                       |
+| `.github/workflows/build.yml` | Builds the dylib on a GitHub macOS runner and uploads it as an artifact.                             |
+| `.github/workflows/ipa.yml`   | Builds the IPA from an original IPA URL and publishes it as a `yt-<version>` release.                |
+| `ipa/`                        | Original `com.<Provider>.ios.youtube-<version>.ipa` files and built `ytminload-<version>.ipa` files. |
 
 ## Build
 
@@ -30,9 +32,9 @@ Requirements: a decrypted YouTube IPA, Theos with an iOS toolchain and SDK, and 
 
 Set up Theos with its [installation guide](https://theos.dev/docs/installation).
 
-Create `ipa/` (it is not in the repository) and put the IPA there as `com.google.ios.youtube-<version>.ipa`.
+Create `ipa/` (it is not in the repository) and put the IPA there as `com.<Provider>.ios.youtube-<version>.ipa`.
 
-Tags named `yt-<version>` mark the YouTube versions this code was verified on.
+Tags named `yt-<version>` mark the YouTube versions this code was built for.
 Build from the one that matches your IPA with `git checkout yt-<version>`.
 
 ```sh
@@ -50,9 +52,22 @@ With Theos in WSL, run this from the repository folder in PowerShell. WSL starts
 wsl -d Ubuntu -- env THEOS=/home/<user>/theos make ipa
 ```
 
+## GitHub Actions
+
+Both workflows run only on demand from the Actions tab.
+
+- `build.yml` builds the dylib on a macOS runner, checks its install name and that no hooking framework
+  is linked, and uploads it as the `ytminload-dylib` artifact.
+- `ipa.yml` asks for a direct download URL of a decrypted YouTube IPA. It runs `build.yml`, then `check` and
+  `pack` on a Linux runner, and publishes `ytminload-<version>.ipa` as a release on the tag `yt-<version>`.
+  A missing tag is created at the built commit; an existing tag is reused.
+
+The URL must download the file directly, without a confirmation page. To rebuild a version that already
+has a release, delete it first with `gh release delete yt-<version> --cleanup-tag`.
+
 ## ytm.py
 
-`<base>` is an IPA, or a folder whose highest-version `com.google.ios.youtube-<version>.ipa` is used.
+`<base>` is an IPA, or a folder whose highest-version `com.<Provider>.ios.youtube-<version>.ipa` is used.
 
 | Command                     | What it does                                                                                                                                                                                                           |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -65,6 +80,6 @@ Info.plist or signatures; Sideloadly signs the app.
 
 ## Notes
 
-- For personal use. The repository holds no IPA or Google binary; keep built IPAs to yourself.
+- For personal use. Releases hold built IPAs.
 - Hooks are found by class name at runtime. A missing class or method is skipped silently, so a YouTube
   update can disable a feature without crashing. `ytm.py check` is how you find out.

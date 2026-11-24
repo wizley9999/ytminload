@@ -1,0 +1,49 @@
+name: IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Direct download URL of a decrypted YouTube IPA
+        required: true
+
+jobs:
+  dylib:
+    uses: ./.github/workflows/build.yml
+
+  ipa:
+    needs: dylib
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: ytminload-dylib
+
+      - name: Download
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          mkdir -p ipa
+          curl -fsSL --retry 3 -o ipa/base.ipa "$URL"
+
+      - name: Check
+        run: python3 ytm.py check ipa/base.ipa
+
+      - name: Pack
+        run: |
+          { echo '```'; python3 ytm.py pack ipa/base.ipa ytminload.dylib; echo '```'; } > notes.md
+          cat notes.md
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          out=$(ls ipa/ytminload-*.ipa)
+          version=${out#ipa/ytminload-}
+          version=${version%.ipa}
+          gh release create "yt-$version" "$out" --target "$GITHUB_SHA" \
+            --title "ytminload for YouTube $version" --notes-file notes.md
