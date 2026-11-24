@@ -60,7 +60,6 @@ Both workflows run only on demand from the Actions tab.
   is linked, and uploads it as the `ytminload-dylib` artifact.
 - `ipa.yml` asks for a direct download URL of a decrypted YouTube IPA. It runs `build.yml`, then `check` and
   `pack` on a Linux runner, and publishes `ytminload-<version>.ipa` as a release on the tag `yt-<version>`.
-  A missing tag is created at the built commit; an existing tag is reused.
 
 The URL must download the file directly, without a confirmation page. To rebuild a version that already
 has a release, delete it first with `gh release delete yt-<version> --cleanup-tag`.

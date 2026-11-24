@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: Direct download URL of a decrypted YouTube IPA
+        description: Direct download URL for the IPA
         required: true
 
 jobs:
@@ -45,5 +45,5 @@ jobs:
           out=$(ls ipa/ytminload-*.ipa)
           version=${out#ipa/ytminload-}
           version=${version%.ipa}
-          gh release create "yt-$version" "$out" --target "$GITHUB_SHA" \
-            --title "ytminload for YouTube $version" --notes-file notes.md
+          gh release create "yt-$version" "$out" \
+            --title "ytminload for v$version" --notes-file notes.md
